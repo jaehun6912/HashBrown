@@ -1,0 +1,29 @@
+# Local keys and runtime data
+*.pem
+*.key
+aes_key.bin
+.env
+.env.*
+!.env.example
+Files/
+clients/
+received/
+runtime/
+
+# Original slide decks (contain student IDs and embedded fonts; publish PDFs only)
+*.pptx
+
+# Build outputs and temporary files
+build/
+client
+server
+socket_client
+socket_server
+*.o
+*.exe
+*.tmp
+*.log
+__pycache__/
+.DS_Store
+Thumbs.db
+~$*

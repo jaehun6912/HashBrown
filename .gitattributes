@@ -1,0 +1,8 @@
+* text=auto
+*.c text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+Makefile text eol=lf
+*.pdf binary
+*.png binary

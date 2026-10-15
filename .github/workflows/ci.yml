@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev openssl
+
+      - name: Build final version
+        run: make -C src
+
+      - name: Compile development history
+        run: |
+          out="$(mktemp -d)"
+          gcc -o "$out/s1-server" history/01-socket/socket_server.c
+          gcc -o "$out/s1-client" history/01-socket/socket_client.c
+          gcc -o "$out/s2-server" history/02-file-transfer/server.c
+          gcc -o "$out/s2-client" history/02-file-transfer/client.c
+          gcc -o "$out/s3-server" history/03-eddsa/server.c history/03-eddsa/eddsa.c -lcrypto
+          gcc -o "$out/s3-client" history/03-eddsa/client.c history/03-eddsa/eddsa.c -lcrypto
+          gcc -o "$out/s4-server" history/04-eddsa-aes/server.c history/04-eddsa-aes/eddsa.c history/04-eddsa-aes/aes.c -lcrypto
+          gcc -o "$out/s4-client" history/04-eddsa-aes/client.c history/04-eddsa-aes/eddsa.c history/04-eddsa-aes/aes.c -lcrypto
+
+      - name: Smoke test
+        run: python3 scripts/smoke_test.py
