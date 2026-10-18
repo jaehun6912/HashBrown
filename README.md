@@ -1,4 +1,4 @@
-# Digital Signature 기반 보안 파일 전송 SW
+# Digital Signature 및 AES-256-GCM 기반 파일 전송 SW
 
 [![CI](https://github.com/jaehun6912/capstone-secure-file-transfer/actions/workflows/ci.yml/badge.svg)](https://github.com/jaehun6912/capstone-secure-file-transfer/actions/workflows/ci.yml)
 ![C11](https://img.shields.io/badge/C-C11-00599C?logo=c&logoColor=white)
@@ -7,7 +7,7 @@
 
 **2026 캡스톤디자인 · 팀 해시브라운**
 
-C와 OpenSSL로 직접 구현한 TCP 파일 전송 프로그램입니다. **Ed25519 디지털 서명**으로 파일 무결성과 송신자를 확인하고, **AES-256-GCM**으로 파일과 서버 파일 목록을 암호화합니다. 접속할 때마다 **X25519 키 교환 + HKDF-SHA256**으로 새 세션키를 만들고, 미리 등록한 공개키로 서버와 클라이언트를 **상호 인증**합니다.
+C와 OpenSSL로 구현한 TCP 파일 전송 프로그램입니다. **Ed25519 기반 Digital Signature**으로 파일 무결성과 송신자를 확인하고, **AES-256-GCM**으로 파일과 서버 파일 목록을 암호화합니다. 접속할 때마다 **X25519 키 교환 + HKDF-SHA256**으로 새 세션키를 만들고, 미리 등록한 공개키로 서버와 클라이언트를 **상호 인증**합니다.
 
 Raspberry Pi 5 서버에 PC 2대(WSL)와 Android 태블릿(Termux)이 동시에 접속하는 환경에서 시연했습니다.
 
@@ -36,7 +36,6 @@ Raspberry Pi 5 서버에 PC 2대(WSL)와 Android 태블릿(Termux)이 동시에 
 - 서버는 `clients/` 안의 공개키로 클라이언트 서명을 차례로 검증하고, 일치하는 키의 파일명(예: `pc1`)을 그 클라이언트의 신원으로 사용합니다.
 - 서명 대상에는 역할 문자열(`X25519-SERVER` / `X25519-CLIENT`)과 양쪽 임시 공개키가 함께 들어갑니다. 따라서 한 방향의 서명을 반대 방향에 재사용할 수 없습니다.
 
-자세한 모듈 구성과 설계 판단은 [구현 분석](docs/ARCHITECTURE.md)에 정리했습니다.
 
 ## 기술 스택
 
@@ -47,7 +46,6 @@ Raspberry Pi 5 서버에 PC 2대(WSL)와 Android 태블릿(Termux)이 동시에 
 | 알고리즘 | Ed25519, X25519, HKDF-SHA256, AES-256-GCM, SHA-256 |
 | 네트워크 / 동시성 | POSIX TCP 소켓, `fork()` |
 | 실행 환경 | Raspberry Pi 5 (서버), WSL Ubuntu, Android Termux (클라이언트) |
-| 검증 | Python 통합 테스트, GitHub Actions |
 
 ## 프로젝트 구조
 
@@ -126,11 +124,8 @@ python3 scripts/smoke_test.py  # 임시 키로 업로드·다운로드·인증 �
 - 미등록 클라이언트 키와 잘못된 서버 공개키로 접속 시 거부
 - 두 클라이언트 병렬 접속, 전송 후 임시 파일 정리
 
-자세한 내용은 [검증 기록](docs/VALIDATION.md)에 있습니다.
 
-## 한계와 개선 방향
-
-교육·시연용 프로젝트이므로 다음 제약이 있습니다. 자세한 내용은 [구현 분석](docs/ARCHITECTURE.md#구현의-한계)을 참고하세요.
+## 한계 및 개선 방향
 
 - 구조체를 그대로 전송하므로 정식 직렬화 형식이 없습니다. `_Static_assert`로 크기만 고정했습니다.
 - 명령, 파일명, 크기 등 일부 메타데이터는 평문입니다. 채널 전체를 보호하는 TLS 수준이 아닙니다.
@@ -143,5 +138,3 @@ python3 scripts/smoke_test.py  # 임시 키로 업로드·다운로드·인증 �
 | 강정우 | 파일 전송 구현, OpenSSL 사용법 학습 |
 | 이원준 | 디지털 서명 및 무결성 검증 모듈 구현 (OpenSSL) |
 | **최재훈** | **개발 환경 구성, 기능 통합 및 테스트, 보고서 작성** |
-
-이 저장소는 졸업작품의 개발 과정과 결과를 소개하는 포트폴리오입니다. 별도 라이선스는 지정하지 않았습니다.
